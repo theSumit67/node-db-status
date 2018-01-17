@@ -7,18 +7,18 @@
     <title>Document</title>
 </head>
 <body>
-    <h4 id="status">DB Status </h4>
-<script type="text/javascript">
-    var source = new EventSource("/mongo");
-    source.addEventListener("sending", function(e) {
-        console.log ( e );
-        document.getElementById("status").style.color = e.data;
-    });
+<h4>DB Status <span id="status"></span>
+</h4>
+<script src="./socket.io.js"></script>
+<script>
+    var socket = io();
 
+    socket.on('mongoStatus', function(msg){
+        console.log(msg);
+        document.getElementById('status').innerHTML = msg;
+    });
+    
 </script>
 </body>
 
-</html>';
-
-</body>
 </html>

@@ -1,65 +1,46 @@
-const mysql         = require('mysql');
-const mongoose      = require('mongoose');
-var http = require("http"),
-    url = require("url"),
-    path = require("path"),
-    fs = require("fs")
+const mysql = require('mysql');
+const mongoose = require('mongoose');
+const express = require('express');
+const app = express();
+const http = require('http').Server(app);
+const io = require('socket.io')(http);
+const path = require('path');
 
 const config = require('./config/database');
-const sse = require('./sse');
 
+app.use(express.static(path.join(__dirname)));
+// app.use(express.static(path.join(__dirname + 'public')));
+
+app.get('/dummy', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+});
 
 var mongoStatus = false;
-http.createServer(function (request, response) {
-
-    var uri = url.parse(request.url).pathname;
-    console.log(uri);
-    if ( uri === "/mongo"){
-        sse(request, response);
-        mongoose.connect(config.database).then(
+io.on('connection', function (socket) {
+    console.log('a user connected');
+    mongoose.connect(config.database, {
+            useMongoClient: true
+        })
+        .then(
             () => {
                 mongoStatus = true;
                 console.log(mongoStatus);
-                response.sse.sendEvent("sending", "AA" + mongoStatus);
+                io.emit('mongoStatus', mongoStatus);
             },
             err => {
                 mongoStatus = false;
                 console.log(mongoStatus);
-                response.sse.sendEvent("sending", "ZZ" + mongoStatus);
+                io.emit('mongoStatus', mongoStatus);
             }
         );
-            
-    } else{
-        var filename = path.join(process.cwd(), uri);
+});
 
-        fs.exists(filename, function (exists) {
-            if (!exists) {
-                response.writeHead(404, { "Content-Type": "text/plain" });
-                response.write("404 Not Found\n");
-                response.end();
-                return;
-            }
+http.listen(3000, () => {
+    console.log('listening on *:3000');
+});
 
-            if (fs.statSync(filename).isDirectory()) filename += '/index.html';
 
-            fs.readFile(filename, "binary", function (err, file) {
-                if (err) {
-                    response.writeHead(500, { "Content-Type": "text/plain" });
-                    response.write(err + "\n");
-                    response.end();
-                    return;
-                }
 
-                response.writeHead(200);
-                response.write(file, "binary");
-                response.end();
-            });
-        });
-    }
-    
-}).listen(parseInt(8080, 10));
-
-console.log("Static file server running at\n  => http://localhost:8080"  + "/\nCTRL + C to shutdown");
 
 
 // MYSQL
