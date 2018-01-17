@@ -8,12 +8,8 @@ const path = require('path');
 
 const config = require('./config/database');
 
-app.use(express.static(path.join(__dirname)));
-// app.use(express.static(path.join(__dirname + 'public')));
+app.use(express.static(path.join(__dirname + '/public')));
 
-app.get('/dummy', (req, res) => {
-    res.sendFile(__dirname + '/index.html');
-});
 
 var mongoStatus = false;
 io.on('connection', function (socket) {
