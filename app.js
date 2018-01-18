@@ -12,27 +12,37 @@ app.use(express.static(path.join(__dirname + '/public')));
 
 
 var mongoStatus = false;
+mongoose.connect(config.database, { useMongoClient: true, poolSize: 5 })
+.then(db=>{
+    mongoStatus = true;
+    console.log(mongoStatus);
+    // Use the admin database for the operation
+    console.log(db.name + '  ' + db ._hasOpened) ;
+
+    // need to check -?
+    // http://mongodb.github.io/node-mongodb-native/2.2/api/Admin.html#listDatabases
+    var adminDb = db.admin();
+    console.log(adminDb);
+    
+    // List all the available databases
+    adminDb.listDatabases(function (err, dbs) {
+        if (err) throw err;
+        console.log(dbs.databases.length);
+        db.close();
+    });
+}, err => {
+    mongoStatus = false;
+    throw err;
+});
+
+
 io.on('connection', function (socket) {
-    console.log('a user connected');
-    mongoose.connect(config.database, {
-            useMongoClient: true
-        })
-        .then(
-            () => {
-                mongoStatus = true;
-                console.log(mongoStatus);
-                io.emit('mongoStatus', mongoStatus);
-            },
-            err => {
-                mongoStatus = false;
-                console.log(mongoStatus);
-                io.emit('mongoStatus', mongoStatus);
-            }
-        );
+    console.log('A user connected');
+    io.emit('mongoStatus', mongoStatus);
 });
 
 http.listen(3000, () => {
-    console.log('listening on *:3000');
+    console.log('listening on port : 3000');
 });
 
 
