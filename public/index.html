@@ -4,21 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
-</head>
-<body>
-<h4>DB Status <span id="status"></span>
-</h4>
-<script src="js/socket.io.js"></script>
-<script>
-    var socket = io();
+    <title>DB Status</title>
 
-    socket.on('mongoStatus', function(msg){
-        console.log(msg);
-        document.getElementById('status').innerHTML = msg;
-    });
-    
-</script>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.css">
+    <script type="text/javascript" src="//code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <br>
+        <br>
+        <div class="row center">
+        <h5 class="header col s12 light">DB Details</h5>
+        
+        <div class="col s8 offset-s2">
+            <h4>DB Status <span id="status"></span></h4>
+            <form action="/process" method="post" enctype="application/x-www-form-urlencoded">
+                <input type="text" placeholder="DB name" name="db_name">
+                <input type="text" placeholder="User Name" name="u_name">
+                <input type="text" placeholder="Password" name="password">
+                <input type="text" placeholder="Confirm Password" name="c_password">
+                <button  class="btn-large waves-effect waves-light">Create DB</button>
+            </form>
+        </div>
+        </div>
+        <br>
+        <br>
+
+    </div>
+    <script src="js/socket.io.js"></script>
+    <script>
+        
+        var formdata = $('form').serialize();
+
+        var socket = io();
+        socket.on('mongoStatus', function (msg) {
+            console.log(msg);
+            document.getElementById('status').innerHTML = msg;
+        });
+    </script>
 </body>
 
 </html>

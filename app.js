@@ -2,12 +2,16 @@ const mysql = require('mysql');
 const mongoose = require('mongoose');
 const express = require('express');
 const app = express();
+const bodyParser = require('body-parser');
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const path = require('path');
 
 const config = require('./config/database');
 
+
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
 app.use(express.static(path.join(__dirname + '/public')));
 
 
@@ -23,8 +27,6 @@ mongoose.connect(config.database, { useMongoClient: true, poolSize: 5 })
     // http://mongodb.github.io/node-mongodb-native/2.2/api/Admin.html#listDatabases
     var adminDb = db.admin();
     console.log(adminDb);
-    
-    // List all the available databases
     adminDb.listDatabases(function (err, dbs) {
         if (err) throw err;
         console.log(dbs.databases.length);
@@ -32,7 +34,7 @@ mongoose.connect(config.database, { useMongoClient: true, poolSize: 5 })
     });
 }, err => {
     mongoStatus = false;
-    throw err;
+    console.log(err);
 });
 
 
@@ -40,6 +42,19 @@ io.on('connection', function (socket) {
     console.log('A user connected');
     io.emit('mongoStatus', mongoStatus);
 });
+
+app.post('/process', function formPostHandler(req, res, next) {
+    
+    var data = {
+        db_name: req.body.db_name, // 
+        u_name: req.body.title,
+        password: req.body.slug,
+        c_password: req.body.c_password,
+    };
+    console.log(data);
+
+    next();
+})
 
 http.listen(3000, () => {
     console.log('listening on port : 3000');
